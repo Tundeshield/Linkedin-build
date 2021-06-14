@@ -1,58 +1,53 @@
-import React from 'react';
-import logo from './logo.svg';
-import { Counter } from './features/counter/Counter';
-import './App.css';
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import "./App.css";
+import { selectUser } from "./features/userSlice";
+import Feed from "./components/Feed";
+import Header from "./components/Header";
+import Sidebar from "./components/Sidebar";
+import Widgets from "./components/Widgets";
+import Login from "./components/Login";
+import { auth } from "./firebase";
+import { login, logout } from "./features/userSlice";
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <Counter />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <span>
-          <span>Learn </span>
-          <a
-            className="App-link"
-            href="https://reactjs.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            React
-          </a>
-          <span>, </span>
-          <a
-            className="App-link"
-            href="https://redux.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Redux
-          </a>
-          <span>, </span>
-          <a
-            className="App-link"
-            href="https://redux-toolkit.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Redux Toolkit
-          </a>
-          ,<span> and </span>
-          <a
-            className="App-link"
-            href="https://react-redux.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            React Redux
-          </a>
-        </span>
-      </header>
-    </div>
-  );
+	const user = useSelector(selectUser);
+	const dispatch = useDispatch();
+	useEffect(() => {
+		auth.onAuthStateChanged((userAuth) => {
+			if (userAuth) {
+				//user logged in
+				dispatch(
+					login({
+						email: userAuth.email,
+						uid: userAuth.email,
+						displayName: userAuth.displayName,
+						photoUrl: userAuth.photoUrl,
+					})
+				);
+			} else {
+				//user not logged in
+				dispatch(logout());
+			}
+		});
+	}, []);
+
+	return (
+		<div className="app">
+			{!user ? (
+				<Login />
+			) : (
+				<>
+					<Header />
+					<div className="app__body">
+						<Sidebar />
+						<Feed />
+						<Widgets />
+					</div>
+				</>
+			)}
+		</div>
+	);
 }
 
 export default App;
